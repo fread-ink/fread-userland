@@ -5,20 +5,21 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-if [[ ! -f "/etc/fread_qemu_cross_compile_chroot" ]]; then
-  echo "This script must be run in the fread QEMU cross compile chroot" >&2
-  exit 1
-fi
-
 set -e
 
-export distro=jessie
-export LANG=C
+hostname fread-qemu
 
 echo "Installing basic build dependencies"
 apt-get update
-apt-get install -y locales dialog build-essential git pkg-config autoconf automake
+apt-get install -y locales dialog build-essential git pkg-config autoconf automake ca-certificates packaging-dev
 apt-get build-dep -y glibc xserver-xorg-video-fbdev
+
+echo "Downloading and installing fread k4 kernel headers"
+
+rm -rf /usr/src/linux
+git clone --depth=1 https://github.com/fread-ink/fread-kernel-k4
+mv fread-kernel-k4/linux-2.6.31 /usr/src/linux
+rm -rf fread-kernel-k4
 
 echo ""
 echo "Your arm chroot cross-compile environment is now ready!"

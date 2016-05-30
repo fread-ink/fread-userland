@@ -76,19 +76,8 @@ This will take a while.
 Then enter the chroot environment and finalize the setup:
 
 ```
-sudo chroot ./arm_chroot /bin/su -
+sudo ./chroot.sh
 ./finalize_chroot_env.sh
-```
-
-# Kernel headers
-
-You'll need the kernel headers for the system you're targeting, e.g:
-
-```
-rm -rf /usr/src/linux
-git clone --depth=1 https://github.com/fread-ink/fread-kernel-k4
-mv fread-kernel-k4/linux-2.6.31 /usr/src/linux
-rm -rf fread-kernel-k4
 ```
 
 # Compiling packages
@@ -125,12 +114,17 @@ If you have an ARM system e.g. a Beagle Bone Black or Raspberry Pi then you can 
 It goes something like this:
 
 ```
-rsync -HPSavx debian_root user@my_arm_system:
-ssh user@my_arm_system
+rsync -HPSavx debian_root root@my_arm_system:
+ssh root@my_arm_system
 # now on the arm system
 rm debian_root/usr/bin/qemu-arm-static
+mount -o bind /dev debian_root/dev
+mount -o bind /proc debian_root/proc
+mount -o bind /sys debian_root/sys
 chroot debian_root /bin/su -
-cd /home/user/glibc-xxx # ToDo
+cd /root/glibc-xxx # ToDo
+dpkg-buildpackage -b -us # build binary only and do not sign
+```
 
 # ToDo compiling
 

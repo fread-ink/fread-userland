@@ -22,9 +22,11 @@ APT::Install-Recommends "0";
 APT::Install-Suggests "0";
 EOT
 
-echo fread-cross > /etc/hostname
+echo cp /etc/hosts ${CHROOT}/etc/
+cp /etc/hostname ${CHROOT}/etc/
 
 cp ${VAGRANT_DIR}/finalize_chroot_env.sh ${CHROOT}/root/
+cp ${VAGRANT_DIR}/chroot.sh ${CHROOT}/../
 
 echo "This is a magic file for scripts to check to know they're in the right chroot env" > ${CHROOT}/etc/fread_qemu_cross_compile_chroot
 
