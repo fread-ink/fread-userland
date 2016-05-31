@@ -23,7 +23,7 @@ apt-get source package-name
 
 ```
 cd package-name-dir/
-dquilt new my-patch-name.patch
+dquilt new my-patch-name.diff
 ```
 
 Tell quilt about the files you're about to modify:
@@ -45,7 +45,7 @@ The last command will ask you for a description for the patch which you _must_ s
 Now add a change to the changelog and increment the version:
 
 ```
-dch -i
+dch -i --distribution enheduana
 ```
 
 Manually edit debian/changelog afterwards if needed. 
@@ -83,17 +83,57 @@ Ensure that you have a reasonably secure gpg key that you want to use for signin
 Install debsign:
 
 ```
-sudo apt-get install debsign
+sudo apt-get install devscripts
 ```
 
-ToDo how to use debsign
+List your current keys with `gpg --list-keys` to get entries like:
 
+```
+pub   4096R/430BEF18 2016-05-28 [expires: 2019-05-28]
+uid                  Marc Juul <juul@fread.ink>
+sub   4096R/0D88279E 2016-05-28 [expires: 2019-05-28]
+```
+
+Pick the subkey from the correct entry and use the key id which in this example is `0D88279E`.
+
+Now for the source package sign the .dsc file:
+
+```
+debsign -k0D88279E my-package.dsc
+```
+
+and for the binary package(s) sign the .changes file:
+
+```
+debsign -k0D88279E my-package.changes
+```
 
 # Setting up an apt repository
 
 This is farily simple. All you need is a web server and the right directory structure with a few index files which is all created and updated automatically by the tool reprepro whenever you run it.
 
 Here is a (guide)[http://wiki.wreiner.at/Main/OwnDebianRepository].
+
+Here is my conf/distributions file:
+
+```
+Origin: fread.ink
+Label: fread.ink
+Codename: enheduanna
+Architectures: armhf source
+Components: main
+UDebComponents: main
+Description: Apt repository for fread.ink
+SignWith: 0D88279E
+```
+
+and my conf/options file:
+
+```
+verbose
+basedir /var/www/fread.ink/public/apt       
+ask-passphrase
+```
 
 Here is my apache config:
 
@@ -160,7 +200,29 @@ For source packages do something like
 reprepro -S main -P required -b /var/www/fread.ink/public/apt includedsc enheduanna package.dsc
 ```
 
-ToDo adding binary packages.
+Adding a binary package:
+
+To add a whole set of .deb and .udeb files that are part of the same package, add the .changes file using:
+
+```
+reprepro -S main -P required -b /var/www/fread.ink/public/apt include enheduanna package.changes
+```
+
+To include just a single .deb or .udeb use the commands includedeb or includeudeb instead.
+
+## Removing a package
+
+To list packages:
+
+```
+reprepro -b /var/www/fread.ink/public/apt list enheduanna
+```
+
+To remove a package use the base name without any verision info, e.g. for glibc_2.19-18+deb8u99 use:
+
+```
+reprepro -b /var/www/fread.ink/public/apt remove enheduanna glibc
+```
 
 # Packages modified/added for fread
 

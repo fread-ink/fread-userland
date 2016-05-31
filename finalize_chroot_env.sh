@@ -11,7 +11,7 @@ hostname fread-qemu
 
 echo "Installing basic build dependencies"
 apt-get update
-apt-get install -y locales dialog build-essential git pkg-config autoconf automake ca-certificates packaging-dev
+apt-get install -y locales dialog build-essential git pkg-config autoconf automake ca-certificates packaging-dev dpkg-dev
 apt-get build-dep -y glibc xserver-xorg-video-fbdev
 
 echo "Downloading and installing fread k4 kernel headers"

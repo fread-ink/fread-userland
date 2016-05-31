@@ -8,12 +8,18 @@ fi
 set -e
 
 VAGRANT_DIR="/vagrant"
-CHROOT="./arm_chroot"
+CHROOT="./qemu_chroot"
 
 echo "Running debootstrap"
 qemu-debootstrap --arch=armhf jessie $CHROOT http://ftp.debian.org/debian/
 
+echo "Setting up qemu"
 cp /usr/bin/qemu-arm-static ${CHROOT}/usr/bin/
+
+echo "Copying configuration"
+
+cp -r configs/* ${CHROOT}/
+
 cp -a /etc/resolv.conf ${CHROOT}/etc/
 cp -a /etc/apt/sources.list ${CHROOT}/etc/apt/
 
@@ -33,7 +39,7 @@ echo "This is a magic file for scripts to check to know they're in the right chr
 echo ""
 echo "First stage completed!"
 echo "To complete second (and final) stage:"
-echo "  sudo chroot ${CHROOT} /bin/su -"
+echo "  sudo ./chroot.sh"
 echo "  ./finalize_chroot_env.sh" 
 echo ""
 

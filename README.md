@@ -82,49 +82,62 @@ sudo ./chroot.sh
 
 # Compiling packages
 
-To set gcc opts for dpkg-buildpackage (e.g. `-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=softfp`) look at `dpkg-buildflags` and `/etc/dpkg/buildflags.conf`
 
-```
-mkdir ~/cortex
-cat > ~/cortex/gcc << EOF
-#! /bin/sh
 
-exec gcc-4.3 -mcpu=cortex-a8 -mfpu=vfp -mfloat-abi=softfp "$@"
-EOF
-chmod 755 ~/cortex/gcc
-ln -s gcc ~/cortex/cc
-ln -s gcc ~/cortex/gcc-4.3
-ln -s gcc ~/cortex/arm-linux-gnueabi-gcc
-```
 
-Then:
+Note that a bunch of extra build flags related to architecture are added by dpkg-buildflags via /etc/dpkg/buildflags.conf whenever a dpkg-buildpackage is called.
 
-```
-PATH=~/cortex:$PATH dpkg-buildpackage -rfakeroot -B
-```
 
 # Compiling glibc
 
-In order to support kernels older than 2.6.32 a slightly modified version of glibc is required. Since changes in the available glibc API will affect other packages the safe bet is to first compile glibc, install it instead of the existing glibc, and then recompile all necessary packages against the modified glibc. This has the advantage of ensuring that all packages are optimized for the exact processor feature set available on your ebook reader which might lead to a few performance improvements.
+In order to support kernels older than 2.6.32 a slightly modified version of glibc is required. Since changes in the available glibc API will affect other packages the safe bet is to first compile glibc, install it instead of the existing glibc, and then recompile all necessary packages against the modified glibc. Recompiling the packages also means that we can ensure they're optimized for the exact processor features available on the target ebook reader.
 
-Unfortunately qemu isn't quite a perfect enough emulator to compile glibc. All other packages compile just fine but glibc compilation just dies with a horrible error. For now you'll have to compile this package on an actual arm system, or 
+Unfortunately qemu isn't quite a perfect enough emulator to compile glibc. Other packages compile just fine but glibc compilation just dies with a horrible error. For now you'll have to compile this package on an actual arm system or download the precompiled binary. To install the binary:
 
-If you have an ARM system e.g. a Beagle Bone Black or Raspberry Pi then you can simply copy the debootstrapped directory over to that system, remove the QEMU binary, chroot into the directory, compile glibc and then copy the resulting binary glibc .deb package back to the QEMU dir on your primary machine and install it. Of course you could also just download the pre-built glibc, but where's the fun in that? 
+Add the following lines to /etc/apt/sources.list
+
+```
+deb https://fread.ink/apt enheduanna main
+deb-src https://fread.ink/apt enheduanna main
+```
+
+Add the fread.ink apt gpg key:
+
+```
+wget -qO - https://fread.ink/fread-apt-key.pub | apt-key add -
+```
+
+Update package list and install patched glibc:
+
+```
+apt-get update
+apt-get install libc-bin libc-dev-bin libc6 libc6-dev
+```
+
+
+If you have an ARM system e.g. a Beagle Bone Black or something already running fread and want to compile the glibc source package then you can simply copy the debootstrapped directory over to that system, remove the QEMU binary, chroot into the directory, compile glibc and then copy the resulting binary glibc .deb package back to the QEMU dir on your primary machine and install it.
 
 It goes something like this:
 
 ```
-rsync -HPSavx debian_root root@my_arm_system:
+# assuming you are within the emulated qemu chroot
+cd ~/
+apt-get source glibc-2.19
+logout # exit the chroot
+# now copy the chroot environment to your arm system
+rsync -HPSavx qemu_chroot root@my_arm_system:
 ssh root@my_arm_system
 # now on the arm system
-rm debian_root/usr/bin/qemu-arm-static
-mount -o bind /dev debian_root/dev
-mount -o bind /proc debian_root/proc
-mount -o bind /sys debian_root/sys
-chroot debian_root /bin/su -
-cd /root/glibc-xxx # ToDo
+rm qemu_chroot/usr/bin/qemu-arm-static # we don't want to emulate
+mount -o bind /dev qemu_chroot/dev
+mount -o bind /proc qemu_chroot/proc
+mount -o bind /sys qemu_chroot/sys
+chroot qemu_chroot /root/init_env.sh
+cd /root/glibc-2.19/ 
 dpkg-buildpackage -b -us # build binary only and do not sign
+# wait for a long time
 ```
+When it is done you can copy all of the resulting .deb and .udeb files back to the chroot inside your vagrant box and then use dpkg -i to install them, replacing the existing glibc.
 
 # ToDo compiling
 
