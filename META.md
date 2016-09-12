@@ -218,7 +218,7 @@ To list packages:
 reprepro -b /var/www/fread.ink/public/apt list enheduanna
 ```
 
-To remove a package use the base name without any verision info, e.g. for glibc_2.19-18+deb8u99 use:
+To remove a package use the base name without any version info, e.g. for glibc_2.19-18+deb8u99 use:
 
 ```
 reprepro -b /var/www/fread.ink/public/apt remove enheduanna glibc
@@ -229,6 +229,84 @@ reprepro -b /var/www/fread.ink/public/apt remove enheduanna glibc
 ## glibc linux pre-2.6.32 support
 
 Since some supported devices use 2.6.31 kernels and the Debian Jessie glibc needs minimum 2.6.32 and since forward-porting board-specific support is beyond the measly skills of this author, the Debian glibc package was modified to compile with support for older kernels, which required only changes to configuration/compilation options. 
+
+
+Debian Jessie uses glibc 2.19 which was released on 2014-02-08. This version of glibc can be compiled to be compatible with 2.6.32 minimum or to support older kernels. The Debian Jessie package disables support for kernels 2.6.32 so we need to make a slightly modified source package and recompile.
+
+Discussions about changing min kernel to 2.6.32:
+
+* https://sourceware.org/ml/libc-alpha/2014-01/threads.html#00511
+
+* https://sourceware.org/ml/libc-alpha/2014-03/msg00881.html
+
+The following was changed in the debian source package:
+
+In the file `debian/debhelper.in/libc.preinst` there is a check that looks like this:
+
+```
+# The GNU libc requires a >= 2.6.32 kernel, found in squeeze/lucid/RHEL6
+        if linux_compare_versions "$kernel_ver" lt 2.6.32
+        then
+            echo WARNING: this version of the GNU libc requires kernel version
+            echo 2.6.32 or later.  Please upgrade your kernel before installing
+            echo glibc.
+            kernel26_help
+
+            exit 1
+        fi
+```
+
+All mentions of 2.6.32 were simply changed to 2.6.31
+
+In the file `debian/sysdeps/linux.mk` the line:
+
+```
+MIN_KERNEL_SUPPORTED := 2.6.32
+```
+
+Was changed to:
+
+```
+MIN_KERNEL_SUPPORTED := 2.6.31
+```
+
+Then a patch was generated using quilt and included in the new source package which modifies the files configure.ac and configure changing the line:
+
+```
+arch_minimum_kernel=2.6.32
+```
+
+To:
+
+```
+arch_minimum_kernel=2.6.31
+```
+
+## Debian Jessie glibc package compatibility
+
+Since Debian Jessie assumes a minimum kernel of 2.6.32 and a glibc compiled with that assumption, it's possible that there are some packages that won't work at all on a 2.6.31 kernel and a glibc compiled with 2.6.31 support, and it's possible that there are some packages that would work if they were recompiled against the 2.6.31-compatible glibc.
+
+This sections tries to enumerate differences that might cause problems and estimate if there is cause for recompiling the entire Debian Jessie package repository against the modified glibc.
+
+Only the following symbols are undefined in glibc 2.19 if kernel < 2.6.32:
+
+* __ASSUME_PSELECT
+* __ASSUME_PPOLL
+* __ASSUME_F_GETOWN_EX: fcntl F_SETOWN_EX and F_GETOWN_EX
+
+The first two correspond to the pselect and ppoll calls. 
+
+Looking at the glibc 2.19 source code it appears that glibc implements its own versions of pselect and ppoll.
+
+Here's the relevant glibc code:
+
+In `sysdeps/unix/sysv/linux/pselect.c` if __ASSUME_PSELECT is not defined then it cincludes glibc's own pselect function from the file `misc/pselect.c`. For ppoll the files are `sysdeps/unix/sysv/linux/ppoll.c` and `io/ppoll.c`.
+
+There is a note in one of the glibc makefiles saying that epoll_pwait is also not present in kernels < 2.6.32 but that's simply not true. I've checked and it's there both in the kindle-k4 kernel and vanilla 2.6.31 kernel and the documentation says that it was added back in 2.6.19.
+
+If the kernel doesn't support F_SETOWN_EX and/or F_GETOWN_EX then glibc appears to have no fallback. It would have been possible to fall back to F_GETOWN and F_SETOWN under any circumstances not involving threads but that hasn't been implemented. The result is that _if_ there are programs out there that decide between using the _EX versions and plain versions of those calls at compile time then they'd have to be recompiled. 
+
+For now I'm just going to assume that few if any programs will have any problems with the lack of the _EX versions. If it turns out to be a problem in the future then patching the _EX versions into the kernel would probably not be a big deal.
 
 ## Xorg driver for electronic paper display controller
 

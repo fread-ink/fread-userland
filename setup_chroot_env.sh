@@ -18,7 +18,7 @@ cp /usr/bin/qemu-arm-static ${CHROOT}/usr/bin/
 
 echo "Copying configuration"
 
-cp -r configs/* ${CHROOT}/
+cp -r config/* ${CHROOT}/
 
 cp -a /etc/resolv.conf ${CHROOT}/etc/
 cp -a /etc/apt/sources.list ${CHROOT}/etc/apt/

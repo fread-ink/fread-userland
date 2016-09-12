@@ -68,7 +68,8 @@ Instead of using a traditional cross-compile toolchain we'll simply start with a
 To download and install the chroot environment run:
 
 ```
-sudo /vagrant/setup_chroot_env.sh
+cd /vagrant/
+sudo ./setup_chroot_env.sh
 ```
 
 This will take a while.
@@ -83,9 +84,7 @@ sudo ./chroot.sh
 # Compiling packages
 
 
-
-
-Note that a bunch of extra build flags related to architecture are added by dpkg-buildflags via /etc/dpkg/buildflags.conf whenever a dpkg-buildpackage is called.
+Note that a bunch of extra build flags related to architecture are added by dpkg-buildflags via /etc/dpkg/buildflags.conf whenever dpkg-buildpackage is called.
 
 
 # Compiling glibc
@@ -114,8 +113,7 @@ apt-get update
 apt-get install libc-bin libc-dev-bin libc6 libc6-dev
 ```
 
-
-If you have an ARM system e.g. a Beagle Bone Black or something already running fread and want to compile the glibc source package then you can simply copy the debootstrapped directory over to that system, remove the QEMU binary, chroot into the directory, compile glibc and then copy the resulting binary glibc .deb package back to the QEMU dir on your primary machine and install it.
+If you have an ARM system e.g. a Beagle Bone Black or something already running fread and want to compile the glibc source package then you can simply copy the debootstrapped directory over to that system, remove the QEMU binary, chroot into the directory, compile glibc and then copy the resulting binary glibc .deb packages back to the QEMU dir on your primary machine and install it.
 
 It goes something like this:
 
@@ -149,3 +147,4 @@ scp user@my_arm_system:debian_root/home/user/glibc-xxx.deb ./ # copy built .deb
 # Compiling everything else
 
 ToDo
+
