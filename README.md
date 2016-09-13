@@ -83,13 +83,11 @@ sudo ./chroot.sh
 
 # Compiling packages
 
-
 Note that a bunch of extra build flags related to architecture are added by dpkg-buildflags via /etc/dpkg/buildflags.conf whenever dpkg-buildpackage is called.
-
 
 # Compiling glibc
 
-In order to support kernels older than 2.6.32 a slightly modified version of glibc is required. Since changes in the available glibc API will affect other packages the safe bet is to first compile glibc, install it instead of the existing glibc, and then recompile all necessary packages against the modified glibc. Recompiling the packages also means that we can ensure they're optimized for the exact processor features available on the target ebook reader.
+The latest kernel available for some Kindles is 2.6.31. In order to support kernels older than 2.6.32 a slightly modified version of glibc is required. 
 
 Unfortunately qemu isn't quite a perfect enough emulator to compile glibc. Other packages compile just fine but glibc compilation just dies with a horrible error. For now you'll have to compile this package on an actual arm system or download the precompiled binary. To install the binary:
 
@@ -136,13 +134,6 @@ dpkg-buildpackage -b -us # build binary only and do not sign
 # wait for a long time
 ```
 When it is done you can copy all of the resulting .deb and .udeb files back to the chroot inside your vagrant box and then use dpkg -i to install them, replacing the existing glibc.
-
-# ToDo compiling
-
-exit # exit chroot
-exit # log out of arm system
-scp user@my_arm_system:debian_root/home/user/glibc-xxx.deb ./ # copy built .deb
-```
 
 # Compiling everything else
 
