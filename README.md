@@ -5,7 +5,7 @@ This is a set of scripts and instructions for building the fread userland. The f
 
 # The virtual machine
 
-Note: This guide uses a different virtual machine environment from the one referenced in the (fread-vagrant)[https://github.com/fread-ink/fread-vagrant] readme file.  If you don't want to use a virtual machine and you're already running Debian Jessie then you could just run the commands from bootstrap.sh directly on your system.
+Note: This guide uses a different virtual machine environment from the one referenced in the [fread-vagrant](https://github.com/fread-ink/fread-vagrant) readme file.  If you don't want to use a virtual machine and you're already running Debian Jessie then you could just run the commands from bootstrap.sh directly on your system.
 
 ## Installing Vagrant
 
