@@ -9,8 +9,13 @@ set -e
 
 hostname fread-qemu
 
-echo "Installing basic build dependencies"
 apt-get update
+
+echo "Installing fread packages"
+apt-get install nano apt-transport-https
+
+echo "Installing basic build dependencies"
+
 apt-get install -y locales dialog build-essential git pkg-config autoconf automake ca-certificates packaging-dev dpkg-dev
 apt-get build-dep -y glibc xserver-xorg-video-fbdev
 

@@ -68,7 +68,9 @@ Instead of using a traditional cross-compile toolchain we'll simply start with a
 To download and install the chroot environment run:
 
 ```
-cd /vagrant/
+cd ~/
+cp -a /vagrant ./fread-userland
+cd fread-userland/
 sudo ./setup_chroot_env.sh
 ```
 

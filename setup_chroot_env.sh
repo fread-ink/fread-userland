@@ -11,10 +11,11 @@ VAGRANT_DIR="/vagrant"
 CHROOT="./qemu_chroot"
 
 echo "Running debootstrap"
-qemu-debootstrap --arch=armhf jessie $CHROOT http://ftp.debian.org/debian/
+qemu-debootstrap --arch=armhf --variant=minbase jessie $CHROOT http://ftp.debian.org/debian/
 
-echo "Setting up qemu"
-cp /usr/bin/qemu-arm-static ${CHROOT}/usr/bin/
+# qemu-debootstrap copies this automatically
+#echo "Setting up qemu"
+#cp /usr/bin/qemu-arm-static ${CHROOT}/usr/bin/
 
 echo "Copying configuration"
 
@@ -32,7 +33,8 @@ echo cp /etc/hosts ${CHROOT}/etc/
 cp /etc/hostname ${CHROOT}/etc/
 
 cp ${VAGRANT_DIR}/finalize_chroot_env.sh ${CHROOT}/root/
-cp ${VAGRANT_DIR}/chroot.sh ${CHROOT}/../
+cp ${VAGRANT_DIR}/init_env.sh ${CHROOT}/root/
+#cp ${VAGRANT_DIR}/chroot.sh ${CHROOT}/../
 
 echo "This is a magic file for scripts to check to know they're in the right chroot env" > ${CHROOT}/etc/fread_qemu_cross_compile_chroot
 
