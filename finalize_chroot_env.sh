@@ -12,7 +12,7 @@ hostname fread-qemu
 apt-get update
 
 echo "Installing fread packages"
-apt-get install nano apt-transport-https
+apt-get install nano apt-transport-https sudo
 
 echo "Installing basic build dependencies"
 
