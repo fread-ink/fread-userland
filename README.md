@@ -137,7 +137,76 @@ dpkg-buildpackage -b -us # build binary only and do not sign
 ```
 When it is done you can copy all of the resulting .deb and .udeb files back to the chroot inside your vagrant box and then use dpkg -i to install them, replacing the existing glibc.
 
-# Compiling everything else
+# Building the xorg driver
 
-ToDo
+You don't have to build this yourself. If you already added the fread.ink repo to your apt sources.list (see previos sections) and ran `apt update` then you can simply install using:
 
+```
+apt install xserver-xorg-video-imx
+```
+
+Inside of the qemu environment, inside of this VM:
+
+```
+cd ~/
+git clone https://github.com/fread-ink/xserver-xorg-video-imx
+cd xserver-xorg-video-imx/
+```
+
+Then follow instructions in the README.md file to build the package. It is recommended not to actually install the driver in this form, since it does not have a proper debian package control file, meaning that the package manager won't understand its verison nor dependencies. It is better to simply install the pre-built package from the fread apt repository. If you really want to generate a proper package from scratch then see the following sub-section.
+
+
+## Generating a proper debian package and source file
+
+You probably don't need to do this, since the package and source package have already been created and you can simply download, compile and install those, but if you really want to do this from scratch:
+
+```
+apt install checkinstall dh-make devscripts
+rm -rf xserver-xorg-video-imx/ # we need to start from scratch
+git clone https://github.com/fread-ink/xserver-xorg-video-imx
+cd xserver-xorg-video-imx/
+rm -rf bin .git* # don't include binaries or git files in the debian source package
+./autogen.sh --prefix=/usr
+# create the package
+DEBFULLNAME="You Name" dh_make -p xserver-xorg-video-imx_0.0.1 --createorig --single --email you@yourhost.org
+```
+
+Now edit the generated `debian/control` file. You can use the control file from the source package of the similar package `xserver-xorg-video-fbdev` as a basis:
+
+```
+apt-get source xserver-xorg-video-fbdev
+less xserver-xorg-video-fbdev-0.4.4/debian/control
+```
+
+Delete all of the `debian/*.ex` and `debian/*.EX` files.
+
+You can look at [this guide](https://blog.packagecloud.io/eng/2016/12/15/howto-build-debian-package-containing-simple-shell-scripts/) for more info.
+
+When you are happy with the control file then build:
+
+```
+debuild -us -uc
+```
+
+# Creating the ext4 file
+
+ToDo improve this section
+
+Inside of the VM but not inside of the qemu chroot environment, do something like this:
+
+```
+du -ch qemu_chroot # find the size of the userland
+# For count= you should use the size of the userland + 100 MB (for some free space)
+dd if=/dev/zero of=fread.ext4 bs=1M count=<size in MB> # create a blank file
+mkfs.ext4 fread.ext4 # create an ext4 filesystem in the blank file
+tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it doesn't yet work)
+sudo mount -o loop fread.ext4 /mnt # loop-mount the file
+sudo cp -a qemu_chroot/* /mnt/ # copy the userland into the loop-mounted ext4 file
+sudo rm /mnt/usr/bin/qemu-arm-static # delete the emulatorc
+sudo cp makenodes.sh /mnt/ # ATTENTION: Copy this from the fread-initrd git repo
+cd /mnt
+sudo ./makenodes.sh # populate /dev
+sudo umount /mnt #unmount
+```
+
+Now you should have a usable root filesystem.
