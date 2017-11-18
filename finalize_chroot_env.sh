@@ -7,27 +7,38 @@ fi
 
 set -e
 
-hostname fread-qemu
+# non-interactive apt mode
+export DEBIAN_FRONTEND=noninteractive
 
+echo "Pre-seeding package configurations"
+debconf-set-selections ./apt_preseed
+
+echo "Trusting fread apt public key"
+apt-key add /tmp/fread-apt-key.pub
+
+echo "Updating package lists"
 apt-get update
 
-echo "Installing fread packages"
-apt-get install -y nano apt-transport-https sudo less 
+echo "Installing fread glibc"
+apt-get install -y libc-bin libc-dev-bin libc6 libc6-dev
 
-echo "Installing basic build dependencies"
+echo "Installing a few basic packages"
+apt-get install -y sudo less nano 
 
-apt-get install -y locales dialog build-essential git pkg-config autoconf automake ca-certificates packaging-dev dpkg-dev fakeroot
-apt-get build-dep -y glibc xserver-xorg-video-fbdev
+echo "Installing graphics subsystem"
+apt-get install -y xserver-xorg-video-imx
 
-echo "Downloading and installing fread k4 kernel headers"
+echo "Cleanup"
+rm -rf /tmp/*
+rm -rf /var/lib/apt/lists/*
+rm -rf /var/cache/apt/archives/*
+rm -rf /usr/share/locale/*
+rm -rf /usr/share/man/*
+rm -rf /usr/share/info/*
+# delete everything except copyright notices in doc dir
+find /usr/share/doc/ \! -path "/usr/share/doc/*/copyright" -delete 2> /dev/null
+# compress copyright notices
+find /usr/share/doc/ -path "/usr/share/doc/*/copyright" -exec gzip '{}' \;
 
-rm -rf /usr/src/linux
-git clone --depth=1 https://github.com/fread-ink/fread-kernel-k4
-mv fread-kernel-k4/linux-2.6.31 /usr/src/linux
-rm -rf fread-kernel-k4
-
-echo ""
-echo "Your arm chroot cross-compile environment is now ready!"
-echo ""
 
 set +e

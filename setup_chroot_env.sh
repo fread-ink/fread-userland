@@ -24,17 +24,15 @@ cp -r config/* ${CHROOT}/
 cp -a /etc/resolv.conf ${CHROOT}/etc/
 cp -a /etc/apt/sources.list ${CHROOT}/etc/apt/
 
-cat <<EOT > ${CHROOT}/etc/apt/apt.conf.d/71-no-recommends
-APT::Install-Recommends "0";
-APT::Install-Suggests "0";
-EOT
-
+# TODO why should just include a sane hosts file
 echo cp /etc/hosts ${CHROOT}/etc/
-cp /etc/hostname ${CHROOT}/etc/
 
 cp ${VAGRANT_DIR}/finalize_chroot_env.sh ${CHROOT}/root/
 cp ${VAGRANT_DIR}/init_env.sh ${CHROOT}/root/
 #cp ${VAGRANT_DIR}/chroot.sh ${CHROOT}/../
+
+# Downloading fread apt public key
+wget -qO - https://fread.ink/fread-apt-key.pub > ${CHROOT}/tmp/fread-apt-key.pub
 
 echo "This is a magic file for scripts to check to know they're in the right chroot env" > ${CHROOT}/etc/fread_qemu_cross_compile_chroot
 

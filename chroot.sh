@@ -12,6 +12,9 @@ CHROOT="./qemu_chroot"
 echo "Bind-mounting /dev/pts"
 mount -o bind /dev/pts ${CHROOT}/dev/pts
 
+echo "Setting hostname"
+hostname $(cat $CHROOT/etc/hostname)
+
 echo "Changing root into ${chroot}..."
 chroot ${CHROOT} /root/init_env.sh
 

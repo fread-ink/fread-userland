@@ -1,7 +1,7 @@
 
-WORK IN PROGRESS. Probably nothing works yet.
+WORK IN PROGRESS.
 
-This is a set of scripts and instructions for building the fread userland. The fread userland is a modified very minimal Debian Jessie. 
+This is a set of scripts and instructions for building the minimal fread userland and optionally extending that userland to enable easy cross-compilation. The fread userland is a modified very minimal Debian Jessie. We would like to switch to Debian Stretch but the kernel versions currently available for 1st to 5th generation kindles are too old for the glibc included in Debian Stretch.
 
 # The virtual machine
 
@@ -59,13 +59,13 @@ vagrant ssh
 
 The rest of this guide assumes that you're working inside of this virtual machine.
 
-For the rest of this guide make sure you're NEVER working in the vagrant dir (/vagrant) since that directory does not support hard links.
+For the rest of this guide make sure you're NEVER working in the vagrant dir (/vagrant) since that directory does not support hardlinks.
 
-# Setting up a cross-compile environment
+# Setting up a qemu arm chroot 
 
-Instead of using a traditional cross-compile toolchain we'll simply start with a minimal ARM Debian Jessie running using a so-called qemu-user-static chroot. A qemu-user-static chroot allows you to chroot into an ARM system on a normal x86 system with QEMU transparently handling emulation. This makes it easy to cross-compile Debian packages using the existing and familiar apt tools.
+This guide uses the qemu-user-static chroot which allows you to chroot into an ARM system on a normal x86 system with QEMU transparently handling emulation. This makes it easy to work on the userland as if you were on an ARM system.
 
-To download and install the chroot environment run:
+To download and install the minimal userland run:
 
 ```
 cd ~/
@@ -83,35 +83,50 @@ sudo ./chroot.sh
 ./finalize_chroot_env.sh
 ```
 
+# Creating the ext4 file
+
+ToDo improve this section
+
+
+Log out of the chroot environment, then do something like this:
+
+```
+du -ch qemu_chroot # find the size of the userland
+# For count= you should use the size of the userland + 100 MB (for some free space)
+dd if=/dev/zero of=fread.ext4 bs=1M count=<size in MB> # create a blank file
+mkfs.ext4 -T small fread.ext4 # create an ext4 filesystem in the blank file
+tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it doesn't yet work)
+sudo mount -o loop fread.ext4 /mnt # loop-mount the file
+sudo cp -a qemu_chroot/* /mnt/ # copy the userland into the loop-mounted ext4 file
+sudo rm /mnt/usr/bin/qemu-arm-static # delete the emulatorc
+sudo cp makenodes.sh /mnt/ # ATTENTION: Copy this from the fread-initrd git repo
+cd /mnt
+sudo ./makenodes.sh # populate /dev
+sudo umount /mnt #unmount
+```
+
+Now you should have a usable root filesystem.
+
+
 # Compiling packages
 
-Note that a bunch of extra build flags related to architecture are added by dpkg-buildflags via /etc/dpkg/buildflags.conf whenever dpkg-buildpackage is called.
+This section and those following are only relevant for people wishing to compile packages or create/modify debian packages.
+
+Make sure you are inside of the qemu_chroot environment, then install build tools using:
+
+```
+./install_buildtools.sh
+```
+
+## A note on dpkg-buildpackage (and similar)
+
+A bunch of extra build flags related to architecture are added by dpkg-buildflags via /etc/dpkg/buildflags.conf whenever dpkg-buildpackage is called.
 
 # Compiling glibc
 
 The latest kernel available for some Kindles is 2.6.31. In order to support kernels older than 2.6.32 a slightly modified version of glibc is required. 
 
 Unfortunately qemu isn't quite a perfect enough emulator to compile glibc. Other packages compile just fine but glibc compilation just dies with a horrible error. For now you'll have to compile this package on an actual arm system or download the precompiled binary. To install the binary:
-
-Add the following lines to /etc/apt/sources.list
-
-```
-deb https://fread.ink/apt enheduanna main
-deb-src https://fread.ink/apt enheduanna main
-```
-
-Add the fread.ink apt gpg key:
-
-```
-wget -qO - https://fread.ink/fread-apt-key.pub | apt-key add -
-```
-
-Update package list and install patched glibc:
-
-```
-apt-get update
-apt-get install libc-bin libc-dev-bin libc6 libc6-dev
-```
 
 If you have an ARM system e.g. a Beagle Bone Black or something already running fread and want to compile the glibc source package then you can simply copy the debootstrapped directory over to that system, remove the QEMU binary, chroot into the directory, compile glibc and then copy the resulting binary glibc .deb packages back to the QEMU dir on your primary machine and install it.
 
@@ -188,25 +203,16 @@ When you are happy with the control file then build:
 debuild -us -uc
 ```
 
-# Creating the ext4 file
 
-ToDo improve this section
+# ToDo
 
-Inside of the VM but not inside of the qemu chroot environment, do something like this:
+# apt package indexes take up too much space
+
+After each `apt-get update` the package indexes take up ~90 MB. How do we deal with this? Compressed ram filesystem? Just a ram filesystem and then automatically delete this after e.g. 10 minutes of no `apt-get` commands?
+
+Apparently new versions of apt support an option to gzip the indexes:
 
 ```
-du -ch qemu_chroot # find the size of the userland
-# For count= you should use the size of the userland + 100 MB (for some free space)
-dd if=/dev/zero of=fread.ext4 bs=1M count=<size in MB> # create a blank file
-mkfs.ext4 fread.ext4 # create an ext4 filesystem in the blank file
-tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it doesn't yet work)
-sudo mount -o loop fread.ext4 /mnt # loop-mount the file
-sudo cp -a qemu_chroot/* /mnt/ # copy the userland into the loop-mounted ext4 file
-sudo rm /mnt/usr/bin/qemu-arm-static # delete the emulatorc
-sudo cp makenodes.sh /mnt/ # ATTENTION: Copy this from the fread-initrd git repo
-cd /mnt
-sudo ./makenodes.sh # populate /dev
-sudo umount /mnt #unmount
+Acquire::GzipIndexes "true";
+Acquire::CompressionTypes::Order:: "gz";
 ```
-
-Now you should have a usable root filesystem.
