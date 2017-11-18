@@ -1,4 +1,0 @@
-path-exclude=/usr/share/locale/*
-path-exclude=/usr/share/man/*
-path-exclude=/usr/share/doc/*
-path-include=/usr/share/doc/*/copyright
