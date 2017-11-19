@@ -16,4 +16,4 @@ keyboard-configuration	keyboard-configuration/xkb-keymap	select	us
 keyboard-configuration	keyboard-configuration/compose	select	No compose key
 keyboard-configuration	keyboard-configuration/optionscode	string	
 keyboard-configuration	keyboard-configuration/altgr	select	The default for the keyboard layout
-root@fread:~# apt-get purge keyboard-configuration
+

@@ -19,7 +19,7 @@ qemu-debootstrap --arch=armhf --variant=minbase jessie $CHROOT http://ftp.debian
 
 echo "Copying configuration"
 
-cp -r config/* ${CHROOT}/
+cp -r ${VAGRANT_DIR}/config/* ${CHROOT}/
 
 cp -a /etc/resolv.conf ${CHROOT}/etc/
 cp -a /etc/apt/sources.list ${CHROOT}/etc/apt/
@@ -27,6 +27,7 @@ cp -a /etc/apt/sources.list ${CHROOT}/etc/apt/
 # TODO why should just include a sane hosts file
 echo cp /etc/hosts ${CHROOT}/etc/
 
+cp ${VAGRANT_DIR}/apt_preseed ${CHROOT}/root/
 cp ${VAGRANT_DIR}/finalize_chroot_env.sh ${CHROOT}/root/
 cp ${VAGRANT_DIR}/init_env.sh ${CHROOT}/root/
 #cp ${VAGRANT_DIR}/chroot.sh ${CHROOT}/../

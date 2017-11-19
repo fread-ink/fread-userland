@@ -85,28 +85,27 @@ sudo ./chroot.sh
 
 # Creating the ext4 file
 
-ToDo improve this section
-
-
-Log out of the chroot environment, then do something like this:
+Log out of the chroot environment, then create an ext4 file:
 
 ```
 du -ch qemu_chroot # find the size of the userland
-# For count= you should use the size of the userland + 100 MB (for some free space)
+# For count= you should use the size of the userland + maybe 100 MB (for some free space)
 dd if=/dev/zero of=fread.ext4 bs=1M count=<size in MB> # create a blank file
-mkfs.ext4 -T small fread.ext4 # create an ext4 filesystem in the blank file
-tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it doesn't yet work)
+sudo mkfs.ext4 -T small fread.ext4 # create an ext4 filesystem in the blank file
+sudo tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it doesn't yet work)
 sudo mount -o loop fread.ext4 /mnt # loop-mount the file
 sudo cp -a qemu_chroot/* /mnt/ # copy the userland into the loop-mounted ext4 file
 sudo rm /mnt/usr/bin/qemu-arm-static # delete the emulatorc
-sudo cp makenodes.sh /mnt/ # ATTENTION: Copy this from the fread-initrd git repo
+sudo cp makenodes.sh /mnt/
 cd /mnt
 sudo ./makenodes.sh # populate /dev
+cd ~/
 sudo umount /mnt #unmount
 ```
 
 Now you should have a usable root filesystem.
 
+Note: We are using ext4 since this file with the intention of loop-mounting it from the existing kindle filesystem. Note that ext4 does not have wear-leveling so it is a bad idea to use it directly on a flash chip. Look into JFFS2 if you intend to use this directly on your e-reader's flash chip.
 
 # Compiling packages
 
