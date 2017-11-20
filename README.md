@@ -59,9 +59,13 @@ vagrant ssh
 
 The rest of this guide assumes that you're working inside of this virtual machine.
 
+The `/vagrant` dir is shared between the VM and your actual system such that any changes to `/vagrant/` happens in the `fread-vagrant/` dir.
+
+For the rest of this guide make sure you're NEVER actually compiling anything directly in the `/vagrant` dir since that directory does not support hard links.
+
 For the rest of this guide make sure you're NEVER working in the vagrant dir (/vagrant) since that directory does not support hardlinks.
 
-# Setting up a qemu arm chroot 
+# Setting up the fread userland
 
 This guide uses the qemu-user-static chroot which allows you to chroot into an ARM system on a normal x86 system with QEMU transparently handling emulation. This makes it easy to work on the userland as if you were on an ARM system.
 
@@ -76,12 +80,38 @@ sudo ./setup_chroot_env.sh
 
 This will take a while.
 
-Then enter the chroot environment and finalize the setup:
+You will need the tar.gz file containing the kernel modules and the modules.dep file that were in the `OUTPUT/` directory after compiling the kernel. From outside the VM simply copy the entire `OUTPUT/` dir into the `fread-userland/` dir to make it appear in `/vagrant/`.
+
+Copy the modules and modules.dep to the userland:
+
+```
+cd ~/fread-userland/
+sudo cp /vagrant/OUTPUT/linux-2.6.31-rt11-lab126.tar.gz qemu_chroot/
+sudo cp /vagrant/OUTPUT/modules.dep qemu_chroot/
+```
+
+Now enter the userland using chroot:
 
 ```
 sudo ./chroot.sh
+```
+
+Put kernel modules files where they need to be:
+
+```
+cd /
+tar -xvzf linux-2.6.31-rt11-lab126.tar.gz --exclude='boot'
+rm linux-2.6.31-rt11-lab126.tar.gz
+mv /modules.dep /lib/modules/2.6.31-rt11-lab126/
+```
+
+Finalize installation of the userland:
+
+```
 ./finalize_chroot_env.sh
 ```
+
+again this will take a while.
 
 # Creating the ext4 file
 
@@ -89,7 +119,7 @@ Log out of the chroot environment, then create an ext4 file:
 
 ```
 du -ch qemu_chroot # find the size of the userland
-# For count= you should use the size of the userland + maybe 100 MB (for some free space)
+# For count= you should use the size of the userland + maybe 120 MB (for some free space)
 dd if=/dev/zero of=fread.ext4 bs=1M count=<size in MB> # create a blank file
 sudo mkfs.ext4 -T small fread.ext4 # create an ext4 filesystem in the blank file
 sudo tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it doesn't yet work)
@@ -103,9 +133,18 @@ cd ~/
 sudo umount /mnt #unmount
 ```
 
-Now you should have a usable root filesystem.
+Now you should have a usable root filesystem. Copy `fread.ext4` to `/vagrant/OUTPUT` to make it accessible from outside the VM:
 
-Note: We are using ext4 since this file with the intention of loop-mounting it from the existing kindle filesystem. Note that ext4 does not have wear-leveling so it is a bad idea to use it directly on a flash chip. Look into JFFS2 if you intend to use this directly on your e-reader's flash chip.
+```
+mkdir -p /vagrant/OUTPUT
+cp ~/fread-userland/fread.ext4 /vagrant/OUTPUT/
+```
+
+Note: We are using ext4 with the intention of loop-mounting it from the existing kindle filesystem. Note that ext4 does not have wear-leveling so it is a bad idea to use it directly on a flash chip. Look into JFFS2 if you intend to use this directly on your e-reader's flash chip.
+
+# Booting fread
+
+See the [fread-vagrant](https://github.com/fread-ink/fread-vagrant) readme file. The section "Booting into fread". 
 
 # Compiling packages
 
@@ -125,7 +164,7 @@ A bunch of extra build flags related to architecture are added by dpkg-buildflag
 
 The latest kernel available for some Kindles is 2.6.31. In order to support kernels older than 2.6.32 a slightly modified version of glibc is required. 
 
-Unfortunately qemu isn't quite a perfect enough emulator to compile glibc. Other packages compile just fine but glibc compilation just dies with a horrible error. For now you'll have to compile this package on an actual arm system or download the precompiled binary. To install the binary:
+Unfortunately qemu isn't quite a perfect enough emulator to compile glibc. Other packages compile just fine but glibc compilation just dies with a horrible error. For now you'll have to compile this package on an actual arm system or download the precompiled binary (available via [https://fread.ink/apt](the fread.ink apt repository)).
 
 If you have an ARM system e.g. a Beagle Bone Black or something already running fread and want to compile the glibc source package then you can simply copy the debootstrapped directory over to that system, remove the QEMU binary, chroot into the directory, compile glibc and then copy the resulting binary glibc .deb packages back to the QEMU dir on your primary machine and install it.
 
