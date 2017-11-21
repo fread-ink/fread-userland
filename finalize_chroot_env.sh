@@ -10,6 +10,9 @@ set -e
 # non-interactive apt mode
 export DEBIAN_FRONTEND=noninteractive
 
+# Set default root password to fread
+echo "root:fread" | chpasswd
+
 echo "Pre-seeding package configurations"
 debconf-set-selections ./apt_preseed
 
@@ -22,8 +25,8 @@ apt-get update
 echo "Installing fread glibc"
 apt-get install -y libc-bin libc-dev-bin libc6 libc6-dev
 
-echo "Installing a few basic packages"
-apt-get install -y sudo less nano 
+echo "Installing basic packages"
+apt-get install -y sudo iproute2 iw dropbear less nano 
 
 echo "Installing graphics subsystem"
 apt-get install -y xserver-xorg-video-imx
