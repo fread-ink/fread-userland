@@ -1,0 +1,13 @@
+
+# prevent installation of systemd
+Package: systemd
+Pin: release *
+Pin-Priority: -1
+
+# prevent installation of systemd-like packages
+# note: if you encounter a package that needs systemd-shim
+# then temporarily disable this section and install it
+Package: *systemd*
+Pin: release *
+Pin-Priority: -1
+

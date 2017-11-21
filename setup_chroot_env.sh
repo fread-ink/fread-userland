@@ -11,7 +11,7 @@ VAGRANT_DIR="/vagrant"
 CHROOT="./qemu_chroot"
 
 echo "Running debootstrap"
-qemu-debootstrap --arch=armhf --variant=minbase jessie $CHROOT http://ftp.debian.org/debian/
+qemu-debootstrap --arch=armhf --variant=minbase --include=sysvinit-core,sysvinit-utils --exclude=systemd jessie $CHROOT http://ftp.debian.org/debian/
 
 # qemu-debootstrap copies this automatically
 #echo "Setting up qemu"
