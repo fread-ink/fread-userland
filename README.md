@@ -119,7 +119,7 @@ Log out of the chroot environment, then create an ext4 file:
 
 ```
 du -ch qemu_chroot # find the size of the userland
-# For count= you should use the size of the userland + maybe 120 MB (for some free space)
+# For count= you should use the size of the userland + maybe 150 MB (for some free space)
 dd if=/dev/zero of=fread.ext4 bs=1M count=<size in MB> # create a blank file
 sudo mkfs.ext4 -T small fread.ext4 # create an ext4 filesystem in the blank file
 sudo tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it doesn't yet work)
@@ -128,7 +128,9 @@ sudo cp -a qemu_chroot/* /mnt/ # copy the userland into the loop-mounted ext4 fi
 sudo rm /mnt/usr/bin/qemu-arm-static # delete the emulatorc
 sudo cp makenodes.sh /mnt/
 cd /mnt
+sudo rm -rf dev/* # delete existing /dev
 sudo ./makenodes.sh # populate /dev
+sudo rm makenodes.sh # remove makenodes script
 cd ~/
 sudo umount /mnt #unmount
 ```

@@ -29,7 +29,7 @@ echo "Installing basic packages"
 apt-get install -y sudo iproute2 iw dropbear less nano 
 
 echo "Installing graphics subsystem"
-apt-get install -y xserver-xorg-video-imx
+apt-get install -y xserver-xorg-video-imx xinit
 
 echo "Cleanup"
 rm -rf /tmp/*
