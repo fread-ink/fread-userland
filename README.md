@@ -126,12 +126,6 @@ sudo tune2fs -c 0 -i 0 ./fread.ext4 # disable automatic fsck on mount (since it 
 sudo mount -o loop fread.ext4 /mnt # loop-mount the file
 sudo cp -a qemu_chroot/* /mnt/ # copy the userland into the loop-mounted ext4 file
 sudo rm /mnt/usr/bin/qemu-arm-static # delete the emulatorc
-sudo cp makenodes.sh /mnt/
-cd /mnt
-sudo rm -rf dev/* # delete existing /dev
-sudo ./makenodes.sh # populate /dev
-sudo rm makenodes.sh # remove makenodes script
-cd ~/
 sudo umount /mnt #unmount
 ```
 

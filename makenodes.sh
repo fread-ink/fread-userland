@@ -45,5 +45,7 @@ mknod 4 b 7 4
 mknod 5 b 7 5
 mknod 6 b 7 6
 mknod 7 b 7 7
+cd ../
+mkdir pts
 cd ../../
 set +e

@@ -13,6 +13,13 @@ export DEBIAN_FRONTEND=noninteractive
 # Set default root password to fread
 echo "root:fread" | chpasswd
 
+echo "Creating /mnt dirs"
+mkdir -p /mnt/kindle
+
+# TODO we should be pulling the firmware from the official linux-firmware repo
+echo "Creating symlink to wifi binary blob firmware"
+ln -s /mnt/kindle/opt/ar6k /opt/ar6k
+
 echo "Pre-seeding package configurations"
 debconf-set-selections ./apt_preseed
 
@@ -26,7 +33,7 @@ echo "Installing fread glibc"
 apt-get install -y libc-bin libc-dev-bin libc6 libc6-dev
 
 echo "Installing basic packages"
-apt-get install -y sudo iproute2 iw dropbear less nano 
+apt-get install -y sudo iproute2 wireless-tools wpasupplicant connman dropbear iputils-ping less nano 
 
 echo "Installing graphics subsystem"
 apt-get install -y xserver-xorg-video-imx xinit
