@@ -33,7 +33,7 @@ echo "Installing fread glibc"
 apt-get install -y libc-bin libc-dev-bin libc6 libc6-dev
 
 echo "Installing basic packages"
-apt-get install -y sudo iproute2 wireless-tools wpasupplicant connman dropbear iputils-ping less nano 
+apt-get install -y sudo iproute2 wireless-tools wpasupplicant connman isc-dhcp-client dnsmasq dropbear iputils-ping less nano 
 
 echo "Installing graphics subsystem"
 apt-get install -y xserver-xorg-video-imx xinit
