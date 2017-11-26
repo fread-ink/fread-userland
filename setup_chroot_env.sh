@@ -31,6 +31,7 @@ echo cp /etc/hosts ${CHROOT}/etc/
 echo "Populating /dev"
 cp ${VAGRANT_DIR}/makenodes.sh ${CHROOT}/
 cd ${CHROOT}/
+rm -rf dev/*
 ./makenodes.sh
 rm makenodes.sh
 cd $START_DIR
