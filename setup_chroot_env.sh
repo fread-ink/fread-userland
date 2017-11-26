@@ -49,9 +49,11 @@ echo "This is a magic file for scripts to check to know they're in the right chr
 
 echo ""
 echo "First stage completed!"
-echo "To complete second (and final) stage:"
-echo "  sudo ./chroot.sh"
-echo "  ./finalize_chroot_env.sh" 
+echo ""
+echo "Now copy in your kernel modules"
+echo "and modules.dep file."
+echo "
+echo "  See README.md for precise instructions" 
 echo ""
 
 set +e
