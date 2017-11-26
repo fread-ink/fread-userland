@@ -38,6 +38,10 @@ apt-get install -y sudo iproute2 wireless-tools wpasupplicant connman isc-dhcp-c
 echo "Installing graphics subsystem"
 apt-get install -y xserver-xorg-video-imx xinit
 
+echo "Disabling auto-start for some services"
+update-rc.d dropbear disable
+update-rc.d dnsmasq disable
+
 echo "Cleanup"
 rm -rf /tmp/*
 rm -rf /var/lib/apt/lists/*
