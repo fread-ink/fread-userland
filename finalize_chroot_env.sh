@@ -33,7 +33,7 @@ echo "Installing fread glibc"
 apt-get install -y libc-bin libc-dev-bin libc6 libc6-dev
 
 echo "Installing basic packages"
-apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install sudo iproute2 wireless-tools wpasupplicant connman isc-dhcp-client dnsmasq dropbear iputils-ping less nano openssh-client
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install sudo kmod iproute2 wireless-tools wpasupplicant connman isc-dhcp-client dnsmasq dropbear iputils-ping less nano openssh-client
 # TODO debians dropbear is missing the scp command
 #      which is why we're stuck install openssh-client.
 #      We should build a proper dropbear package with scp.
