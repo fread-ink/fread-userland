@@ -33,14 +33,24 @@ echo "Installing fread glibc"
 apt-get install -y libc-bin libc-dev-bin libc6 libc6-dev
 
 echo "Installing basic packages"
-apt-get install -y sudo iproute2 wireless-tools wpasupplicant connman isc-dhcp-client dnsmasq dropbear iputils-ping less nano 
+apt-get install -y sudo iproute2 wireless-tools wpasupplicant connman isc-dhcp-client dnsmasq dropbear iputils-ping less nano openssh-client
+# TODO debians dropbear is missing the scp command
+#      which is why we're stuck install openssh-client.
+#      We should build a proper dropbear package with scp.
+
 
 echo "Installing graphics subsystem"
 apt-get install -y xserver-xorg-video-imx xinit
 
+echo "Switching to bash as default shell"
+dpkg-reconfigure -f noninteractive dash # yes this switches _away_ from dash
+
 echo "Disabling auto-start for some services"
 update-rc.d dropbear disable
 update-rc.d dnsmasq disable
+
+echo "Enabling fread startup script"
+update-rc.d fread_startup defaults
 
 echo "Cleanup"
 rm -rf /tmp/*

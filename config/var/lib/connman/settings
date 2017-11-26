@@ -1,0 +1,6 @@
+[global]
+OfflineMode=false
+
+[Wired]
+Enable=false
+Tethering=false

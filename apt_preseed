@@ -1,3 +1,4 @@
+dash    dash/sh boolean false
 keyboard-configuration	keyboard-configuration/variantcode	string	
 keyboard-configuration	keyboard-configuration/model	select	Generic 105-key (Intl) PC
 keyboard-configuration	keyboard-configuration/switch	select	No temporary switch

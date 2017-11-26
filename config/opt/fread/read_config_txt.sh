@@ -92,7 +92,16 @@ while read -r LINE; do
         ;;
 
         USB)
-            echo "USB not implemented"
+            if [ "$VALUE" = "ethernet" ]; then
+                modprobe g_ether
+                sleep 3
+                ip addr add 192.168.1.1/24 dev usb0
+                ip link set dev usb0 up
+                /etc/init.d/dnsmasq start
+                /etc/init.d/dropbear start
+            else
+                echo "USB mode $VALUE not implemented"
+            fi
         ;;
  
 
@@ -127,7 +136,6 @@ Passphrase=$OPT_WIFI_PASSWORD
 IPv4=$CFG_IPV4
 $CFG_NAMESERVERS
 EOF
-
 
     /etc/init.d/connman start
 fi
