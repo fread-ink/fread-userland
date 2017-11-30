@@ -10,7 +10,7 @@ fi
 
 OPT_WIFI="disable"
 OPT_WIFI_IP_METHOD="dhcp"
-OPT_WIFI_IP_ADDRESS="192.168.1.42"
+OPT_WIFI_IP_ADDRESS="192.168.15.42"
 OPT_WIFI_IP_NETMASK="255.255.255.0"
 
 # parse each line that looks like "FOO = VAR" into $SETTING and $VALUE
@@ -95,7 +95,7 @@ while read -r LINE; do
             if [ "$VALUE" = "ethernet" ]; then
                 modprobe g_ether
                 sleep 3
-                ip addr add 192.168.1.1/24 dev usb0
+                ip addr add 192.168.15.1/24 dev usb0
                 ip link set dev usb0 up
                 /etc/init.d/dnsmasq start
                 /etc/init.d/dropbear start
