@@ -108,7 +108,7 @@ mv /modules.dep /lib/modules/2.6.31-rt11-lab126/
 Finalize installation of the userland:
 
 ```
-cd
+cd ~/
 ./finalize_chroot_env.sh
 ```
 
