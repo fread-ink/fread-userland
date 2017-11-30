@@ -52,7 +52,7 @@ echo "First stage completed!"
 echo ""
 echo "Now copy in your kernel modules"
 echo "and modules.dep file."
-echo "
+echo ""
 echo "  See README.md for precise instructions" 
 echo ""
 
