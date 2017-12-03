@@ -30,6 +30,16 @@ mknod random c 1 8
 mknod rtc0 c 254 0
 mknod rtc1 c 254 1
 mknod tty c 5 0
+mknod tty0 c 4 0
+mknod tty1 c 4 1
+mknod tty2 c 4 2
+mknod tty3 c 4 3
+mknod tty4 c 4 4
+mknod tty5 c 4 5
+mknod tty6 c 4 6
+mknod tty7 c 4 7
+mknod tty8 c 4 8
+chmod 660 tty*
 mknod ttymxc0 c 207 16
 mknod urandom c 1 9
 mknod yoshibutton c 10 158
