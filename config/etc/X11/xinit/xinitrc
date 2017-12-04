@@ -5,4 +5,4 @@
 # global xinitrc file, used by all X sessions started by xinit (startx)
 
 # start awesome window manager
-awesome -c /etc/awesome/rc.lua
+exec awesome -c /etc/awesome/rc.lua
