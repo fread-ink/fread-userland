@@ -7,7 +7,7 @@ fi
 
 echo "Setting default route for usb0 to $1"
 ip addr flush dev usb0
-ip addr add 192.168.1.1/24 dev usb0
+ip addr add 192.168.15.1/24 dev usb0
 ip route add default via $1 dev usb0
 
 echo "Setting nameserver to 8.8.8.8"

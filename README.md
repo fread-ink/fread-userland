@@ -251,3 +251,15 @@ Apparently new versions of apt support an option to gzip the indexes:
 Acquire::GzipIndexes "true";
 Acquire::CompressionTypes::Order:: "gz";
 ```
+
+# Disclaimer
+
+Kindle and Lab126 are registered trademarks of Amazon Inc. 
+
+Kobo is a registered trademark of Kobo Inc. 
+
+Nook is a registered trademark of Barnes & Noble Booksellers Inc. 
+
+E Ink is a registered trademark of the E Ink Corporation. 
+
+None of these organizations are in any way affiliated with fread nor this git project nor any of the authors of this project and neither fread nor this git project is in any way endorsed by these corporations.
