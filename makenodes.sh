@@ -57,5 +57,20 @@ mknod 6 b 7 6
 mknod 7 b 7 7
 cd ../
 mkdir pts
+
+mkdir input
+cd input/
+
+cd ../
+mknod event0 c 13 64 # tequila keyboard
+mknod event1 c 13 65 # fiveway controller
+mknod event2 c 13 66
+mknod event3 c 13 67
+mknod event4 c 13 68
+mknod event5 c 13 69
+mknod event6 c 13 70
+mknod event7 c 13 71
+mknod event8 c 13 72
+mknod event9 c 13 73
 cd ../../
 set +e
