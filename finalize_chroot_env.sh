@@ -40,7 +40,7 @@ apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-conf
 
 
 echo "Installing graphics subsystem"
-apt-get install -y xserver-xorg-video-imx xinit
+apt-get install -y xserver-xorg-video-imx xinit inkwave
 
 echo "Switching to bash as default shell"
 dpkg-reconfigure -f noninteractive dash # yes this switches _away_ from dash
