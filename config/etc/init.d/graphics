@@ -1,0 +1,226 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          graphics
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+# Description:
+#
+# This script checks that the EPD (electronic paper display) waveform
+# is present in the correct format. Loads the EPD controller kernel
+# module and starts the X server.
+
+# Detailed description:
+#
+# This script checks if a .wrf format waveform is present
+# if not, it check is a .wbf format waveform is present 
+# and attempts to convert it to .wrf format.
+# If this fails or no .wbf format waveform is present
+# then it attempts to download the .wbf format waveform
+# from the electronic paper display's SPI flash chip
+# and then convert it to .wrf format.
+# The EPDC kernel module is then loaded
+# and told to use the .wrf waveform.
+# Finally the X server is started.
+
+PROC_EXTRACT_PATH="/proc/wf/panel/extract_path"
+BASE_PATH="/opt/waveforms"
+WAVEFORM_PATH="/opt/waveforms"
+TMP_DEST_DIR="/opt/waveforms/tmp" # this will be deleted on each run
+DEFAULT_UPDATE_MODE="3" # the default waveform mode to use for updates
+START_X_COMMAND="/usr/bin/xinit -- /usr/bin/Xorg :0 -config /etc/X11/xorg.conf"
+
+# these will be set by the code
+WBF_PATH=""
+WRF_PATH=""
+
+
+function echo_err() {
+  >&2 echo $@
+  return $?
+}
+
+download_waveform() {
+
+  echo "Attempting to download waveform from e-ink display"
+
+  if [ ! -f $PROC_EXTRACT_PATH ]; then
+    echo "Error: Waveform module not loaded. Try: modprobe eink_fb_waveform"
+    return 1
+  fi
+
+  rm -rf $TMP_DEST_DIR
+  mkdir -p $TMP_DEST_DIR
+
+  # tell kernel module "eink_fb_waveform" to download
+  # waveform from eink display (over SPI) and place it
+  # with an unknown filename in the TEMP_DEST_DIR
+  echo "${TMP_DEST_DIR}/" > $PROC_EXTRACT_PATH
+
+  cd $TMP_DEST_DIR
+
+  TMP_FILE=$(ls -1 *.wbf 2> /dev/null)
+  if [ "$?" -ne "0" ]; then
+    echo_err "Error: Failed to download waveform from display"
+    return $?
+  fi
+
+  TMP_FILE_PATH="${TMP_DEST_DIR}/${TMP_FILE}"
+  WBF_PATH="${WAVEFORM_PATH}/${TMP_FILE}"
+
+  # .wrf path should be same as .wbf but ending in .wrf instead
+  WRF_PATH="${WBF_PATH%.*}.wrf" 
+
+  mv $TMP_FILE_PATH $WBF_PATH
+  if [ "$?" -ne "0" ]; then
+    echo_err "Error: Failed moving waveform to $WBF_PATH"
+    return $?
+  fi
+
+  echo "Waveform succesfully downloaded to $WBF_PATH"
+
+  return 0
+}
+
+convert_waveform() {
+
+  echo "Attempting to convert .wbf wavform to .wrf format"
+
+  if [ ! -f "$WBF_PATH" ]; then
+    echo_err "Error: Attempting to convert non-existant file $WBF_PATH"
+    return $?
+  fi
+
+  # .wrf path should be same as .wbf but ending in .wrf instead
+  WRF_PATH="${WBF_PATH%.*}.wrf" 
+
+  inkwave $WBF_PATH -o $WRF_PATH
+  if [ "$?" -ne "0" ]; then
+    echo_err "Error: Failed to convert the .wrf file $WBF_PATH to .wbf format"
+    return $?
+  fi
+
+  echo "Waveform successfully converted to $WRF_PATH"
+
+  return 0
+}
+
+load_epdc_module() {
+
+  modprobe --first-time mxc_epdc_fb waveform_to_use=$WBF_PATH default_update_mode=$DEFAULT_UPDATE_MODE
+  if [ "$?" -ne "0" ]; then
+    echo "Error: Unable to load EPDC kernel module 'mxc_epdc_fb'" > /dev/stderr
+    return $?
+  fi
+
+  return 0
+}
+
+is_epdc_module_loaded() {
+  cat /proc/modules | cut -d " " -f 1 | grep mxc_epdc_fb > /dev/null
+  if [ "$?" -eq "0" ]; then
+    return 1
+  fi
+  return 0
+}
+
+start_x() {
+  echo "Starting X"
+  eval $START_X_COMMAND
+  return 0
+}
+
+find_waveforms() {
+  local CMD="ls -1 ${WAVEFORM_PATH}"
+  local WBF_CMD="${CMD}/*.wbf"
+  local WRF_CMD="${CMD}/*.wrf"
+
+  # ensure there is only one wbf file
+  if [ "$($WBF_CMD 2>/dev/null | wc -l)" -eq "1" ]; then
+    WBF_PATH=$(readlink -f $($WBF_CMD))
+  fi
+
+  # ensure there is only one wrf file
+  if [ "$($WRF_CMD 2>/dev/null | wc -l)" -eq "1" ]; then
+    WRF_PATH=$(readlink -f $($WRF_CMD))
+  fi
+
+}
+
+start() {
+
+  is_epdc_module_loaded
+  if [ "$?" -ne "0" ]; then
+    echo_err "Error: EPDC module 'mxc_epdc_fb' already loaded"
+    return $?
+  fi
+
+  find_waveforms
+
+  mkdir -p $BASE_PATH
+
+  if [ -z "$WRF_PATH" ] || [ ! -f "$WRF_PATH" ]; then
+
+    echo ".wrf waveform mising"
+
+    if [ ! -z "$WBF_PATH" ] && [ -f "$WBF_PATH" ]; then
+      echo ".wbf waveform is present"
+
+      convert_waveform
+      if [ "$?" -ne "0" ]; then
+        echo_err "Warning: Converting existing waveform failed"
+      fi
+    fi
+
+    if [ -z "$WRF_PATH" ] || [ ! -f "$WRF_PATH" ]; then
+
+      download_waveform
+      if [ "$?" -ne "0" ]; then
+        echo_err "Error: Downloading waveform failed"
+        return $?
+      fi
+
+      convert_waveform
+      if [ "$?" -ne "0" ]; then
+        echo_err "Error: Converting downloaded waveform failed"
+        return $?
+      fi
+    fi  
+  fi
+
+
+  load_epdc_module
+  if [ "$?" -ne "0" ]; then
+    return $?
+  fi
+
+  start_x
+  return $?
+
+}
+
+
+case "$1" in
+  start)
+    echo "Starting graphics"
+    start
+    exit $?
+  ;;
+  stop)
+    echo_err "Error: Stopping graphics not yet implemented"
+    exit 1
+  ;;
+  restart)
+    echo_err "Error: Restarting graphics not yet implemented"
+    exit 1
+	;;
+  *)
+    echo_err "Usage: graphics {start|stop|restart}"
+    exit 1
+  ;;
+esac
+
+

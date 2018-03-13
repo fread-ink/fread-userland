@@ -3,7 +3,14 @@
 # This file contains the names of kernel modules that should be loaded
 # at boot time, one per line. Lines beginning with "#" are ignored.
 
-mxc_epdc_fb # electronic paper display controller
+# waveform module
+eink_fb_waveform
+
+# note that the mxc_epdc_fb module is loaded by /etc/init.d/graphics
+# because loading that module inhibits downloading the waveform data from the
+# electronic paper display's flash chip, so we need to ensure that it has
+# already been downloaded (or trigger a download if it has not)
+# before loading mxc_epdc_fb
 
 # button inputs
 mxc_keyb
