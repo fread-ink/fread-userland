@@ -31,7 +31,11 @@ BASE_PATH="/opt/waveforms"
 WAVEFORM_PATH="/opt/waveforms"
 TMP_DEST_DIR="/opt/waveforms/tmp" # this will be deleted on each run
 DEFAULT_UPDATE_MODE="3" # the default waveform mode to use for updates
-START_X_COMMAND="/usr/bin/xinit -- /usr/bin/Xorg :0 -config /etc/X11/xorg.conf"
+
+PIDFILE="/var/run/X.pid"
+XINIT="/usr/bin/xinit"
+XINIT_ARGS="/usr/bin/Xorg :0 -config /etc/X11/xorg.conf"
+
 
 # these will be set by the code
 WBF_PATH=""
@@ -129,9 +133,24 @@ is_epdc_module_loaded() {
 
 start_x() {
   echo "Starting X"
-  eval $START_X_COMMAND
-  return 0
+
+  # Return
+  #   0 if X has been started
+  #   1 if X was already running
+  #   2 if X could not be started
+
+  start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $XINIT --test > /dev/null || return 1
+  start-stop-daemon --start --quiet --pidfile $PIDFILE --background --make-pidfile \
+                    --exec $XINIT -- -- $XINIT_ARGS || return 2
 }
+
+stop_x() {
+  echo "Stopping X"
+
+  start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
+  return $?
+}
+
 
 find_waveforms() {
   local CMD="ls -1 ${WAVEFORM_PATH}"
@@ -154,8 +173,8 @@ start() {
 
   is_epdc_module_loaded
   if [ "$?" -ne "0" ]; then
-    echo_err "Error: EPDC module 'mxc_epdc_fb' already loaded"
-    return $?
+    start_x
+    return 0
   fi
 
   find_waveforms
@@ -210,8 +229,9 @@ case "$1" in
     exit $?
   ;;
   stop)
-    echo_err "Error: Stopping graphics not yet implemented"
-    exit 1
+    echo "Stopping graphics"
+    stop_x
+    exit $?
   ;;
   restart)
     echo_err "Error: Restarting graphics not yet implemented"
