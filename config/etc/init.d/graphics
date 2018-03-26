@@ -34,7 +34,7 @@ DEFAULT_UPDATE_MODE="3" # the default waveform mode to use for updates
 
 PIDFILE="/var/run/X.pid"
 XINIT="/usr/bin/xinit"
-XINIT_ARGS="/usr/bin/Xorg :0 -config /etc/X11/xorg.conf"
+#XINIT_ARGS="/usr/bin/Xorg :0 -config /etc/X11/xorg.conf"
 
 
 # these will be set by the code
@@ -141,7 +141,7 @@ start_x() {
 
   start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $XINIT --test > /dev/null || return 1
   start-stop-daemon --start --quiet --pidfile $PIDFILE --background --make-pidfile \
-                    --exec $XINIT -- -- $XINIT_ARGS || return 2
+                    --exec $XINIT || return 2
 }
 
 stop_x() {
