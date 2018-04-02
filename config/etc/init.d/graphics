@@ -123,6 +123,18 @@ load_epdc_module() {
   return 0
 }
 
+unload_epdc_module() {
+
+  modprobe -r mxc_epdc_fb
+  if [ "$?" -ne "0" ]; then
+    echo "Error: Unable to unload EPDC kernel module 'mxc_epdc_fb'" > /dev/stderr
+    return $?
+  fi
+
+  return 0
+}
+
+
 is_epdc_module_loaded() {
   cat /proc/modules | cut -d " " -f 1 | grep mxc_epdc_fb > /dev/null
   if [ "$?" -eq "0" ]; then
@@ -151,6 +163,21 @@ stop_x() {
   return $?
 }
 
+
+stop() {
+
+  # The reading we unload the epdc module is that starting the X server
+  # the first time after loading the epdc module results in a 600x800
+  # portrait mode, but restart X after that results in 800x600 landscape
+  # no matter what is put in the xorg.conf file, as far as I can tell
+  #   -- juul
+
+  echo "Unloading epdc module"
+  unload_epdc_module
+  if [ "$?" -ne "0" ]; then
+    return $?
+  fi
+}
 
 find_waveforms() {
   local CMD="ls -1 ${WAVEFORM_PATH}"
@@ -230,7 +257,7 @@ case "$1" in
   ;;
   stop)
     echo "Stopping graphics"
-    stop_x
+    stop
     exit $?
   ;;
   restart)
