@@ -13,7 +13,7 @@ eink_fb_waveform
 # before loading mxc_epdc_fb
 
 # button inputs
-mxc_keyb
+#mxc_keyb
 tequila_keypad
 fiveway
 
