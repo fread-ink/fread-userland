@@ -166,6 +166,11 @@ stop_x() {
 
 stop() {
 
+  stop_x
+#  if [ "$?" -ne "0" ]; then
+#    return $?
+#  fi
+
   # The reading we unload the epdc module is that starting the X server
   # the first time after loading the epdc module results in a 600x800
   # portrait mode, but restart X after that results in 800x600 landscape
